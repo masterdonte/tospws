@@ -66,16 +66,16 @@ public class TestTOS {
 			throw new IllegalStateException("Cannot encode with UTF-8", ex);
 		}
 	}
-	//Exemplo de JSON
+	//Exemplo de JSON	
 	private String getJson() {
 		String json = "[\"tosp.foundation.core.kernel.coqueryobject.CoQueryObjectDynamic\"," + 
 				" {\"PesagemDTO\":[\"java.util.HashMap\",	" + 
 				"						{" + 
 				"							\"placa\":\"\"," + 
-				"							\"imo\":\"9700689\"," + 
+				"							\"imo\":\"9514389\"," + 
 				"							\"cnpjCliente\":\"\"," + 
-				"							\"pesagemIni\":\"07/04/2020 00:00\"," + 
-				"							\"pesagemFim\":\"08/04/2020 23:59\"," + 
+				"							\"pesagemIni\":\"25/04/2021 05:00\"," + 
+				"							\"pesagemFim\":\"25/04/2021 08:00\"," + 
 				"							\"page\":0" + 
 				"						}" + 
 				"					]" + 
