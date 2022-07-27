@@ -15,7 +15,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class TestTOS {
-	
+	//private final static String host = "https://tos.portodoitaqui.com/tosp";
 	private final static String host = "http://tos.emap.ma.gov.br/tosp";
 	private final static String user = "usuario";
 	private final static String pass = "senha";
