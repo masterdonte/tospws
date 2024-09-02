@@ -15,12 +15,16 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class TestTOS {
-	//private final static String host = "https://tos.portodoitaqui.com/tosp";
-	private final static String host = "http://tos.emap.ma.gov.br/tosp";
-	private final static String user = "usuario";
-	private final static String pass = "senha";
-		
-	public String getStringCookie() {						
+	private final static String host = "http://172.10.2.25/tosp";
+	private final static String user = "externo";
+	private final static String pass = "*******";
+	private String sessionId;
+	
+	public TestTOS() {
+		tryAuthenticate();
+	}
+	
+	private void tryAuthenticate() {
 		HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(user, pass);
 		Client client = ClientBuilder.newClient();
 		client.register(feature);
@@ -29,34 +33,13 @@ public class TestTOS {
 		Response response = builder.get(Response.class);		
 		String output = response.readEntity(String.class);					
 		if(output == null || output.toLowerCase().contains("bad credentials")) {
-			return null;
-		}		
-		NewCookie newCookie = response.getCookies().get("JSESSIONID");			
-		return newCookie.getValue();
-	}
-
-	@Test
-	public void testarPesagemWebService() {
-		//Fazer esta requisição apenas uma vez e utilizá-la para as requisições posteriores
-		String jsessionid = getStringCookie();
-		
-		if(jsessionid != null) {
-			Client client = ClientBuilder.newClient();				
-			Entity<String> entity = Entity.entity(getJson(), MediaType.APPLICATION_JSON);		
-			WebTarget target = client.target(host).path("/PESAGEMWS/filtrar");			                 
-			Builder builder = target.request();			
-			builder.header("Authorization", getBasicAuthentication());
-	        builder.header("Content-Type",  "application/json");
-	        builder.cookie("JSESSIONID", jsessionid);			
-			String response = builder.post(entity, String.class);      
-			System.out.println(response);
-			client.close();
-			Assert.assertTrue(true);			
+			sessionId =  null;
 		}else {
-			Assert.assertNotNull("Não foi possivel fazer o login", jsessionid);			
-		}		
+			NewCookie newCookie = response.getCookies().get("JSESSIONID");			
+			sessionId = newCookie.getValue();			
+		}
 	}
-
+	
 	private String getBasicAuthentication() {
 		String token = user + ":" + pass;
 		try {
@@ -66,22 +49,75 @@ public class TestTOS {
 			throw new IllegalStateException("Cannot encode with UTF-8", ex);
 		}
 	}
-	//Exemplo de JSON	
-	private String getJson() {
-		String json = "[\"tosp.foundation.core.kernel.coqueryobject.CoQueryObjectDynamic\"," + 
-				" {\"PesagemDTO\":[\"java.util.HashMap\",	" + 
-				"						{" + 
-				"							\"placa\":\"\"," + 
-				"							\"imo\":\"9514389\"," + 
-				"							\"cnpjCliente\":\"\"," + 
-				"							\"pesagemIni\":\"25/04/2021 05:00\"," + 
-				"							\"pesagemFim\":\"25/04/2021 08:00\"," + 
-				"							\"page\":0" + 
-				"						}" + 
-				"					]" + 
-				" }"+
-				"]" ;
-		return json;
+	
+	public String getSessionId() {
+		return sessionId;
 	}
-
+	
+	public String executarPost(String jsessionid, String resourceUrl, String json) {
+		Client client = ClientBuilder.newClient();				
+		Entity<String> entity = Entity.entity(json, MediaType.APPLICATION_JSON);
+		WebTarget target = client.target(host).path(resourceUrl);
+		Builder builder = target.request();			
+		builder.header("Authorization", getBasicAuthentication());
+        builder.header("Content-Type",  "application/json");
+        //builder.cookie("JSESSIONID", jsessionid);			
+		String response = builder.post(entity, String.class);
+		client.close();
+		return response;
+	}
+	
+	@Test
+	public void testManutenirEmpresa() {
+		if(getSessionId() == null) {
+			Assert.assertNotNull("Não foi possivel fazer o login", getSessionId());
+			return;
+		}
+		String json = "[\"tosp.foundation.core.kernel.coqueryobject.CoQueryObjectDynamic\"," + 
+				"        {\"Empresa\":[\"java.util.HashMap\",	" + 
+				"	   	   	  {" + 
+				"	   	   	   	  \"tipo\":2," + 
+				"	   	   	   	  \"page\":0" + 
+				"	   	   	  }" + 
+				"	 ]}]";
+		String result = executarPost(getSessionId(), "ManutenirEmpresaEmap/filtrar", json);
+		System.out.println(result);
+		Assert.assertFalse(result.toLowerCase().contains("bad credentials"));	
+	}
+	
+	@Test
+	public void testManutenirOperacaoNavio() {
+		if(getSessionId() == null) {
+			Assert.assertNotNull("Não foi possivel fazer o login", getSessionId());
+			return;
+		}
+		String json = "[\"tosp.foundation.core.kernel.coqueryobject.CoQueryObjectDynamic\"," + 
+				"        {\"OperacaoNavio\":[\"java.util.HashMap\",	" + 
+				"	   	   	  {" + 
+				"	   	   	   	  \"viagemId\":1499905 ," + 
+				"	   	   	   	  \"page\":0" + 
+				"	   	   	  }" + 
+				"	 ]}]";
+		String result = executarPost(getSessionId(), "ManutenirOperacaoNavio/filtrar", json);
+		System.out.println(result);
+		Assert.assertFalse(result.toLowerCase().contains("bad credentials"));
+	}
+	
+	@Test
+	public void testManutenirPerfil() {
+		if(getSessionId() == null) {
+			Assert.assertNotNull("Não foi possivel fazer o login", getSessionId());
+			return;
+		}
+		String json = "[\"tosp.foundation.core.kernel.coqueryobject.CoQueryObjectDynamic\"," + 
+				"        {\"Perfil\":[\"java.util.HashMap\",	" + 
+				"	   	   	  {" + 
+				"	   	   	   	  \"page\":0" + 
+				"	   	   	  }" + 
+				"	 ]}]";
+		String result = executarPost(getSessionId(), "ManutenirPerfil/filtrar", json);
+		System.out.println(result);
+		Assert.assertFalse(result.toLowerCase().contains("bad credentials"));
+	}
+	
 }
