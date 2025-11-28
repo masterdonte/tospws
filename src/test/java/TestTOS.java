@@ -28,7 +28,7 @@ public class TestTOS {
 		HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(user, pass);
 		Client client = ClientBuilder.newClient();
 		client.register(feature);
-		WebTarget target = client.target(host).queryParam("portal", "ORG");
+		WebTarget target = client.target(host).queryParam("portal", "AMC");
 		Builder builder = target.request();
 		Response response = builder.get(Response.class);		
 		String output = response.readEntity(String.class);					
